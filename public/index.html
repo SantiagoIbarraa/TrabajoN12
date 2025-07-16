@@ -1,0 +1,792 @@
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>To-Do List - Gestión de Tareas</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                color: #333;
+                line-height: 1.6;
+            }
+
+            .container {
+                max-width: 600px;
+                margin: 30px auto;
+                padding: 30px;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 15px;
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+                backdrop-filter: blur(10px);
+            }
+
+            h1, h2 {
+                text-align: center;
+                margin-bottom: 30px;
+                color: #333;
+            }
+
+            h1 {
+                font-size: 2.5em;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+
+            input, textarea {
+                width: 100%;
+                padding: 15px;
+                border: 2px solid #e1e5e9;
+                border-radius: 10px;
+                font-size: 16px;
+                transition: all 0.3s ease;
+                background: rgba(255, 255, 255, 0.9);
+            }
+
+            input:focus, textarea:focus {
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            }
+
+            button {
+                width: 100%;
+                padding: 15px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border: none;
+                border-radius: 10px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin-bottom: 10px;
+            }
+
+            button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            }
+
+            button:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            .btn-secondary {
+                background: linear-gradient(135deg, #fd746c, #ff9068);
+            }
+
+            .btn-small {
+                width: auto;
+                padding: 8px 16px;
+                font-size: 14px;
+                margin: 0 5px;
+            }
+
+            .auth-links {
+                text-align: center;
+                margin-top: 20px;
+            }
+
+            .auth-links a {
+                color: #667eea;
+                text-decoration: none;
+                font-weight: 500;
+            }
+
+            .auth-links a:hover {
+                text-decoration: underline;
+            }
+
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 30px;
+                padding-bottom: 20px;
+                border-bottom: 2px solid #e1e5e9;
+            }
+
+            .user-info {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                font-size: 14px;
+                color: #666;
+            }
+
+            .task {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 20px;
+                margin-bottom: 15px;
+                background: rgba(255, 255, 255, 0.8);
+                border-radius: 10px;
+                border-left: 4px solid #667eea;
+                transition: all 0.3s ease;
+            }
+
+            .task:hover {
+                transform: translateX(5px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .task.completed {
+                opacity: 0.6;
+                border-left-color: #28a745;
+            }
+
+            .task.completed .task-content {
+                text-decoration: line-through;
+                color: #6c757d;
+            }
+
+            .task-content h3 {
+                margin-bottom: 5px;
+                color: #333;
+            }
+
+            .task-content p {
+                color: #666;
+                font-size: 14px;
+            }
+
+            .task-meta {
+                font-size: 12px;
+                color: #999;
+                margin-top: 5px;
+            }
+
+            .task-actions {
+                display: flex;
+                gap: 10px;
+            }
+
+            .task-form {
+                background: rgba(255, 255, 255, 0.9);
+                padding: 25px;
+                border-radius: 10px;
+                margin-bottom: 30px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .hidden {
+                display: none;
+            }
+
+            .loading {
+                text-align: center;
+                padding: 20px;
+                color: #666;
+            }
+
+            .error-message {
+                background: #f8d7da;
+                color: #721c24;
+                padding: 15px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                border: 1px solid #f5c6cb;
+            }
+
+            .success-message {
+                background: #d4edda;
+                color: #155724;
+                padding: 15px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                border: 1px solid #c3e6cb;
+            }
+
+            .empty-state {
+                text-align: center;
+                padding: 40px;
+                color: #666;
+            }
+
+            .empty-state h3 {
+                margin-bottom: 10px;
+                color: #999;
+            }
+
+            .connection-status {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 10px 15px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                z-index: 1000;
+            }
+
+            .connection-status.online {
+                background: #d4edda;
+                color: #155724;
+            }
+
+            .connection-status.offline {
+                background: #f8d7da;
+                color: #721c24;
+            }
+
+            @media (max-width: 768px) {
+                .container {
+                    margin: 10px;
+                    padding: 20px;
+                }
+                
+                .header {
+                    flex-direction: column;
+                    gap: 15px;
+                }
+                
+                .task {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 15px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Estado de conexión -->
+        <div id="connection-status" class="connection-status online">● Conectado</div>
+
+        <!-- Contenedor de Autenticación -->
+        <div id="auth-container" class="container">
+            <!-- Formulario de Login -->
+            <div id="login-form">
+                <h2>Iniciar Sesión</h2>
+                <div id="auth-messages"></div>
+                <form id="login-form-element">
+                    <div class="form-group">
+                        <input type="email" id="login-email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="login-password" placeholder="Contraseña" required>
+                    </div>
+                    <button type="submit" id="login-btn">Iniciar Sesión</button>
+                </form>
+                <div class="auth-links">
+                    <p>¿No tienes cuenta? <a href="#" id="show-register">Regístrate aquí</a></p>
+                </div>
+            </div>
+
+            <!-- Formulario de Registro -->
+            <div id="register-form" class="hidden">
+                <h2>Crear Cuenta</h2>
+                <div id="register-messages"></div>
+                <form id="register-form-element">
+                    <div class="form-group">
+                        <input type="text" id="register-username" placeholder="Nombre de usuario" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" id="register-email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="register-password" placeholder="Contraseña (mín. 6 caracteres)" required>
+                    </div>
+                    <button type="submit" id="register-btn">Crear Cuenta</button>
+                </form>
+                <div class="auth-links">
+                    <p>¿Ya tienes cuenta? <a href="#" id="show-login">Inicia sesión aquí</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenedor de la Aplicación -->
+        <div id="app-container" class="container hidden">
+            <div class="header">
+                <div>
+                    <h1>Mis Tareas</h1>
+                    <div class="user-info">
+                        <span id="user-name">Usuario</span>
+                        <span>•</span>
+                        <span id="task-count">0 tareas</span>
+                    </div>
+                </div>
+                <button id="logout-btn" class="btn-secondary btn-small">Cerrar Sesión</button>
+            </div>
+
+            <!-- Formulario para agregar tareas -->
+            <div class="task-form">
+                <h3>Agregar Nueva Tarea</h3>
+                <form id="task-form-element">
+                    <div class="form-group">
+                        <input type="text" id="task-title" placeholder="Título de la tarea" required>
+                    </div>
+                    <div class="form-group">
+                        <textarea id="task-description" placeholder="Descripción (opcional)" rows="3"></textarea>
+                    </div>
+                    <button type="submit" id="add-task-btn">Agregar Tarea</button>
+                </form>
+            </div>
+
+            <!-- Lista de tareas -->
+            <div id="task-list-container">
+                <div id="loading" class="loading hidden">Cargando tareas...</div>
+                <div id="task-list"></div>
+                <div id="empty-state" class="empty-state hidden">
+                    <h3>No hay tareas</h3>
+                    <p>Agrega tu primera tarea usando el formulario de arriba</p>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            class TodoApp {
+                constructor() {
+                    this.API_URL = 'http://localhost:3000/api';
+                    this.token = localStorage.getItem('token');
+                    this.currentUser = null;
+                    this.tasks = [];
+                    
+                    this.initializeApp();
+                }
+
+                initializeApp() {
+                    // Elementos del DOM
+                    this.authContainer = document.getElementById('auth-container');
+                    this.appContainer = document.getElementById('app-container');
+                    this.loginForm = document.getElementById('login-form');
+                    this.registerForm = document.getElementById('register-form');
+                    this.taskList = document.getElementById('task-list');
+                    this.loadingElement = document.getElementById('loading');
+                    this.emptyState = document.getElementById('empty-state');
+                    this.connectionStatus = document.getElementById('connection-status');
+
+                    // Event listeners
+                    this.setupEventListeners();
+
+                    // Verificar conexión
+                    this.checkConnection();
+
+                    // Verificar token y mostrar vista apropiada
+                    if (this.token) {
+                        this.showApp();
+                    } else {
+                        this.showAuth();
+                    }
+                }
+
+                setupEventListeners() {
+                    // Navegación entre login y registro
+                    document.getElementById('show-register').addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.showRegisterForm();
+                    });
+
+                    document.getElementById('show-login').addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.showLoginForm();
+                    });
+
+                    // Formularios
+                    document.getElementById('login-form-element').addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        this.handleLogin();
+                    });
+
+                    document.getElementById('register-form-element').addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        this.handleRegister();
+                    });
+
+                    document.getElementById('task-form-element').addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        this.handleAddTask();
+                    });
+
+                    document.getElementById('logout-btn').addEventListener('click', () => {
+                        this.handleLogout();
+                    });
+                }
+
+                async checkConnection() {
+                    try {
+                        const response = await fetch(`${this.API_URL}/health`, {
+                            method: 'GET',
+                            timeout: 5000
+                        });
+                        
+                        if (response.ok) {
+                            this.updateConnectionStatus(true);
+                        } else {
+                            this.updateConnectionStatus(false);
+                        }
+                    } catch (error) {
+                        this.updateConnectionStatus(false);
+                    }
+                }
+
+                updateConnectionStatus(isOnline) {
+                    if (isOnline) {
+                        this.connectionStatus.textContent = '● Conectado';
+                        this.connectionStatus.className = 'connection-status online';
+                    } else {
+                        this.connectionStatus.textContent = '● Sin conexión';
+                        this.connectionStatus.className = 'connection-status offline';
+                    }
+                }
+
+                showAuth() {
+                    this.authContainer.classList.remove('hidden');
+                    this.appContainer.classList.add('hidden');
+                }
+
+                showApp() {
+                    this.authContainer.classList.add('hidden');
+                    this.appContainer.classList.remove('hidden');
+                    this.fetchTasks();
+                }
+
+                showLoginForm() {
+                    this.loginForm.classList.remove('hidden');
+                    this.registerForm.classList.add('hidden');
+                    this.clearMessages();
+                }
+
+                showRegisterForm() {
+                    this.loginForm.classList.add('hidden');
+                    this.registerForm.classList.remove('hidden');
+                    this.clearMessages();
+                }
+
+                showMessage(containerId, message, type = 'error') {
+                    const container = document.getElementById(containerId);
+                    container.innerHTML = `<div class="${type}-message">${message}</div>`;
+                    setTimeout(() => {
+                        container.innerHTML = '';
+                    }, 5000);
+                }
+
+                clearMessages() {
+                    document.getElementById('auth-messages').innerHTML = '';
+                    document.getElementById('register-messages').innerHTML = '';
+                }
+
+                setButtonLoading(buttonId, isLoading) {
+                    const button = document.getElementById(buttonId);
+                    button.disabled = isLoading;
+                    if (isLoading) {
+                        button.textContent = 'Cargando...';
+                    } else {
+                        // Restaurar texto original
+                        switch (buttonId) {
+                            case 'login-btn':
+                                button.textContent = 'Iniciar Sesión';
+                                break;
+                            case 'register-btn':
+                                button.textContent = 'Crear Cuenta';
+                                break;
+                            case 'add-task-btn':
+                                button.textContent = 'Agregar Tarea';
+                                break;
+                        }
+                    }
+                }
+
+                async handleRegister() {
+                    const username = document.getElementById('register-username').value.trim();
+                    const email = document.getElementById('register-email').value.trim();
+                    const password = document.getElementById('register-password').value;
+
+                    if (!username || !email || !password) {
+                        this.showMessage('register-messages', 'Todos los campos son obligatorios');
+                        return;
+                    }
+
+                    if (password.length < 6) {
+                        this.showMessage('register-messages', 'La contraseña debe tener al menos 6 caracteres');
+                        return;
+                    }
+
+                    this.setButtonLoading('register-btn', true);
+
+                    try {
+                        const response = await fetch(`${this.API_URL}/auth/register`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ username, email, password })
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            this.showMessage('register-messages', 'Usuario creado exitosamente. Ahora puedes iniciar sesión.', 'success');
+                            document.getElementById('register-form-element').reset();
+                            
+                            setTimeout(() => {
+                                this.showLoginForm();
+                            }, 2000);
+                        } else {
+                            this.showMessage('register-messages', data.error || 'Error al crear usuario');
+                        }
+                    } catch (error) {
+                        this.showMessage('register-messages', 'Error de conexión. Verifica tu conexión a internet.');
+                        this.updateConnectionStatus(false);
+                    } finally {
+                        this.setButtonLoading('register-btn', false);
+                    }
+                }
+
+                async handleLogin() {
+                    const email = document.getElementById('login-email').value.trim();
+                    const password = document.getElementById('login-password').value;
+
+                    if (!email || !password) {
+                        this.showMessage('auth-messages', 'Email y contraseña son obligatorios');
+                        return;
+                    }
+
+                    this.setButtonLoading('login-btn', true);
+
+                    try {
+                        const response = await fetch(`${this.API_URL}/auth/login`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ email, password })
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            this.token = data.token;
+                            localStorage.setItem('token', data.token);
+                            this.showApp();
+                        } else {
+                            this.showMessage('auth-messages', data.error || 'Error al iniciar sesión');
+                        }
+                    } catch (error) {
+                        this.showMessage('auth-messages', 'Error de conexión. Verifica tu conexión a internet.');
+                        this.updateConnectionStatus(false);
+                    } finally {
+                        this.setButtonLoading('login-btn', false);
+                    }
+                }
+
+                handleLogout() {
+                    this.token = null;
+                    this.currentUser = null;
+                    this.tasks = [];
+                    localStorage.removeItem('token');
+                    this.showAuth();
+                    
+                    // Limpiar formularios
+                    document.getElementById('login-form-element').reset();
+                    document.getElementById('register-form-element').reset();
+                    document.getElementById('task-form-element').reset();
+                }
+
+                async fetchTasks() {
+                    this.loadingElement.classList.remove('hidden');
+                    
+                    try {
+                        const response = await fetch(`${this.API_URL}/tasks`, {
+                            headers: {
+                                'Authorization': `Bearer ${this.token}`
+                            }
+                        });
+
+                        if (response.ok) {
+                            this.tasks = await response.json();
+                            this.updateConnectionStatus(true);
+                        } else if (response.status === 401) {
+                            // Token inválido
+                            this.handleLogout();
+                            return;
+                        } else {
+                            throw new Error('Error al cargar tareas');
+                        }
+                    } catch (error) {
+                        this.showMessage('auth-messages', 'Error al cargar tareas');
+                        this.updateConnectionStatus(false);
+                    } finally {
+                        this.loadingElement.classList.add('hidden');
+                        this.renderTasks();
+                    }
+                }
+
+                renderTasks() {
+                    this.taskList.innerHTML = '';
+                    
+                    // Actualizar contador de tareas
+                    document.getElementById('task-count').textContent = `${this.tasks.length} tarea${this.tasks.length !== 1 ? 's' : ''}`;
+
+                    if (this.tasks.length === 0) {
+                        this.emptyState.classList.remove('hidden');
+                        return;
+                    }
+
+                    this.emptyState.classList.add('hidden');
+
+                    this.tasks.forEach(task => {
+                        const taskElement = document.createElement('div');
+                        taskElement.className = `task ${task.completed ? 'completed' : ''}`;
+                        taskElement.innerHTML = `
+                            <div class="task-content">
+                                <h3>${task.title}</h3>
+                                <p>${task.description || 'Sin descripción'}</p>
+                                <div class="task-meta">
+                                    Creada: ${new Date(task.created_at).toLocaleDateString('es-ES', {
+                                        day: 'numeric',
+                                        month: 'short',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}
+                                </div>
+                            </div>
+                            <div class="task-actions">
+                                <button class="btn-small toggle-btn" data-id="${task.id}">
+                                    ${task.completed ? 'Pendiente' : 'Completar'}
+                                </button>
+                                <button class="btn-small btn-secondary delete-btn" data-id="${task.id}">
+                                    Eliminar
+                                </button>
+                            </div>
+                        `;
+
+                        // Event listeners para los botones
+                        taskElement.querySelector('.toggle-btn').addEventListener('click', (e) => {
+                            this.toggleTask(e.target.dataset.id);
+                        });
+
+                        taskElement.querySelector('.delete-btn').addEventListener('click', (e) => {
+                            this.deleteTask(e.target.dataset.id);
+                        });
+
+                        this.taskList.appendChild(taskElement);
+                    });
+                }
+
+                async handleAddTask() {
+                    const title = document.getElementById('task-title').value.trim();
+                    const description = document.getElementById('task-description').value.trim();
+
+                    if (!title) {
+                        alert('El título de la tarea es obligatorio');
+                        return;
+                    }
+
+                    this.setButtonLoading('add-task-btn', true);
+
+                    try {
+                        const response = await fetch(`${this.API_URL}/tasks`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.token}`
+                            },
+                            body: JSON.stringify({ title, description })
+                        });
+
+                        if (response.ok) {
+                            document.getElementById('task-form-element').reset();
+                            this.fetchTasks();
+                            this.updateConnectionStatus(true);
+                        } else if (response.status === 401) {
+                            this.handleLogout();
+                            return;
+                        } else {
+                            throw new Error('Error al agregar tarea');
+                        }
+                    } catch (error) {
+                        alert('Error al agregar tarea. Verifica tu conexión.');
+                        this.updateConnectionStatus(false);
+                    } finally {
+                        this.setButtonLoading('add-task-btn', false);
+                    }
+                }
+
+                async toggleTask(taskId) {
+                    const task = this.tasks.find(t => t.id == taskId);
+                    if (!task) return;
+
+                    try {
+                        const response = await fetch(`${this.API_URL}/tasks/${taskId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.token}`
+                            },
+                            body: JSON.stringify({
+                                title: task.title,
+                                description: task.description,
+                                completed: !task.completed
+                            })
+                        });
+
+                        if (response.ok) {
+                            this.fetchTasks();
+                            this.updateConnectionStatus(true);
+                        } else if (response.status === 401) {
+                            this.handleLogout();
+                            return;
+                        } else {
+                            throw new Error('Error al actualizar tarea');
+                        }
+                    } catch (error) {
+                        alert('Error al actualizar tarea. Verifica tu conexión.');
+                        this.updateConnectionStatus(false);
+                    }
+                }
+
+                async deleteTask(taskId) {
+                    if (!confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`${this.API_URL}/tasks/${taskId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${this.token}`
+                            }
+                        });
+
+                        if (response.ok) {
+                            this.fetchTasks();
+                            this.updateConnectionStatus(true);
+                        } else if (response.status === 401) {
+                            this.handleLogout();
+                            return;
+                        } else {
+                            throw new Error('Error al eliminar tarea');
+                        }
+                    } catch (error) {
+                        alert('Error al eliminar tarea. Verifica tu conexión.');
+                        this.updateConnectionStatus(false);
+                    }
+                }
+            }
+
+            // Inicializar la aplicación
+            document.addEventListener('DOMContentLoaded', () => {
+                new TodoApp();
+            });
+        </script>
+    </body>
+    </html>

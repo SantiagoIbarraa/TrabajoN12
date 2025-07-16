@@ -1,0 +1,39 @@
+/* public/css/style.css */
+body { font-family: sans-serif; 
+    background: #f4f4f4; 
+    color: #333; 
+    line-height: 1.6; }
+#auth-container, #app-container {
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 20px; 
+    background: #fff; 
+    border-radius: 5px; 
+    box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+input[type="text"], input[type="email"], input[type="password"], textarea { 
+    width: 95%; 
+    padding: 10px; 
+    margin-bottom: 10px; 
+    border: 1px solid #ddd; 
+    border-radius: 3px; }
+button { 
+    padding: 10px 15px; 
+    background: #337ab7; 
+    color: #fff; 
+    border: none; cursor: pointer; border-radius: 3px; }
+button:hover { background: #286090; }
+#logout-btn { background: #d9534f; }
+#task-list .task { 
+    display: flex; 
+    justify-content: 
+    space-between; 
+    align-items: center; 
+    padding: 10px; 
+    border-bottom: 1px solid #ddd; }
+#task-list .task.completed { 
+    text-decoration: 
+    line-through; color: #aaa; }
+#task-list .task-actions button {
+     margin-left: 5px; 
+     font-size: 12px; 
+     padding: 5px 8px; }

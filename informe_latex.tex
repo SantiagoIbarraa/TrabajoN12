@@ -1,0 +1,568 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{longtable}
+
+% Configuración de página
+\geometry{margin=2.5cm}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Santiago Ibarra}
+\lhead{Proyecto Backend Node.js}
+\rfoot{Página \thepage}
+
+% Configuración de código
+\lstset{
+    language=JavaScript,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    frame=single,
+    breaklines=true,
+    showstringspaces=false
+}
+
+% Configuración de títulos
+\titleformat{\section}{\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{1em}{}
+
+\begin{document}
+
+% Portada
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    
+    {\Huge\bfseries Proyecto de Implementación de Sitios Web Dinámicos\par}
+    \vspace{1cm}
+    
+    {\Large\bfseries ACTIVIDAD 11: Instalación, Configuración y Utilización de Node.js para Backend con JavaScript\par}
+    \vspace{2cm}
+    
+    {\Large\bfseries Sistema de Gestión de Tareas (Todo App)\par}
+    \vspace{2cm}
+    
+    \begin{minipage}{0.4\textwidth}
+        \begin{flushleft}
+            \large
+            \textbf{Materia:} Diseño e Implementación de Sitios Web Dinámicos\\
+            \textbf{Escuela:} EEST N.º 1 - "Eduardo Ader" Vicente López\\
+            \textbf{Curso:} 7° Año 2° Grupo A\\
+            \textbf{Día y horario:} Miércoles de 17:35 a 21:45 Hs\\
+            \textbf{Modalidad:} Presencial/Virtual Asincrónico
+        \end{flushleft}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.4\textwidth}
+        \begin{flushright}
+            \large
+            \textbf{Profesor:} Jorge Fabián Siles Guzmán\\
+            \textbf{Estudiante:} Santiago Ibarra\\
+            \textbf{1° Cuatrimestre 2025}
+        \end{flushright}
+    \end{minipage}
+    
+    \vfill
+    {\large \today\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Introducción}
+
+Este informe documenta la implementación completa de un sistema backend utilizando Node.js, Express.js y MySQL para la gestión de tareas (Todo App). El proyecto fue desarrollado como parte de la Actividad 11 de la materia "Diseño e Implementación de Sitios Web Dinámicos" en la EEST N.º 1 "Eduardo Ader".
+
+El sistema implementa funcionalidades completas de autenticación de usuarios, gestión de tareas con operaciones CRUD, y una API RESTful bien estructurada. Se incluye también un frontend básico para interactuar con el backend.
+
+\section{Link Github}
+
+
+
+\section{Arquitectura del Sistema}
+
+\subsection{Estructura del Proyecto}
+
+El proyecto sigue una arquitectura MVC (Model-View-Controller) con la siguiente estructura:
+
+
+
+\subsection{Tecnologías Utilizadas}
+
+\begin{itemize}
+    \item \textbf{Node.js}: Runtime de JavaScript para el servidor
+    \item \textbf{Express.js}: Framework web para Node.js
+    \item \textbf{MySQL}: Base de datos relacional
+    \item \textbf{MySQL2}: Driver de MySQL para Node.js
+    \item \textbf{bcryptjs}: Encriptación de contraseñas
+    \item \textbf{jsonwebtoken}: Autenticación JWT
+    \item \textbf{cors}: Middleware para CORS
+    \item \textbf{dotenv}: Gestión de variables de entorno
+    \item \textbf{nodemon}: Reinicio automático en desarrollo
+\end{itemize}
+
+\section{Configuración del Proyecto}
+
+\subsection{Dependencias del Proyecto}
+
+El archivo \texttt{package.json} contiene las siguientes dependencias:
+
+\begin{lstlisting}
+{
+  "name": "trabajon12",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon app.js",
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.14.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
+\end{lstlisting}
+
+\subsection{Variables de Entorno}
+
+El archivo \texttt{entorn.env} contiene la configuración de la base de datos:
+
+\begin{lstlisting}
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=todo_app
+PORT=3000
+JWT_SECRET=tu_secreto_jwt_super_seguro
+\end{lstlisting}
+
+\section{Implementación del Backend}
+
+\subsection{Configuración del Servidor Principal}
+
+El archivo \texttt{app.js} configura el servidor Express con todos los middlewares necesarios:
+
+\begin{lstlisting}
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config({ path: './entorn.env' });
+
+const authRoutes = require('./routes/authRoutes');
+const taskRoutes = require('./routes/taskRoutes');
+
+const app = express();
+
+// Middlewares
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
+
+// Health check route
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'OK', message: 'Server is running' });
+});
+
+// Rutas
+app.use('/api/auth', authRoutes);
+app.use('/api/tasks', taskRoutes);
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+});
+\end{lstlisting}
+
+\subsection{Configuración de la Base de Datos}
+
+El archivo \texttt{config/db.js} establece la conexión con MySQL:
+
+\begin{lstlisting}
+const mysql = require('mysql2');
+require('dotenv').config();
+
+const pool = mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
+
+module.exports = pool.promise();
+\end{lstlisting}
+
+\section{Modelos de Datos}
+
+\subsection{Modelo de Usuario}
+
+El archivo \texttt{models/user.js} define las operaciones de base de datos para usuarios:
+
+\begin{lstlisting}
+const db = require('../config/db');
+
+class User {
+    static async create(username, email, password) {
+        const sql = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
+        const [result] = await db.execute(sql, [username, email, password]);
+        return result.insertId;
+    }
+
+    static async findByEmail(email) {
+        const sql = 'SELECT * FROM users WHERE email = ?';
+        const [rows] = await db.execute(sql, [email]);
+        return rows[0];
+    }
+
+    static async findById(id) {
+        const sql = 'SELECT id, username, email, created_at FROM users WHERE id = ?';
+        const [rows] = await db.execute(sql, [id]);
+        return rows[0];
+    }
+}
+
+module.exports = User;
+\end{lstlisting}
+
+\subsection{Modelo de Tarea}
+
+El archivo \texttt{models/task.js} define las operaciones CRUD para tareas:
+
+\begin{lstlisting}
+const db = require('../config/db');
+
+class Task {
+    static async create(title, description, userId) {
+        const sql = 'INSERT INTO tasks (title, description, user_id) VALUES (?, ?, ?)';
+        const [result] = await db.execute(sql, [title, description, userId]);
+        return result.insertId;
+    }
+
+    static async findByUserId(userId) {
+        const sql = 'SELECT * FROM tasks WHERE user_id = ? ORDER BY created_at DESC';
+        const [rows] = await db.execute(sql, [userId]);
+        return rows;
+    }
+
+    static async findById(id) {
+        const sql = 'SELECT * FROM tasks WHERE id = ?';
+        const [rows] = await db.execute(sql, [id]);
+        return rows[0];
+    }
+    
+    static async update(id, title, description, completed) {
+        const sql = 'UPDATE tasks SET title = ?, description = ?, completed = ? WHERE id = ?';
+        const [result] = await db.execute(sql, [title, description, completed, id]);
+        return result.affectedRows;
+    }
+
+    static async delete(id) {
+        const sql = 'DELETE FROM tasks WHERE id = ?';
+        const [result] = await db.execute(sql, [id]);
+        return result.affectedRows;
+    }
+}
+
+module.exports = Task;
+\end{lstlisting}
+
+\section{Controladores}
+
+\subsection{Controlador de Autenticación}
+
+El archivo \texttt{controllers/authController.js} maneja el registro y login de usuarios:
+
+
+
+\subsection{Controlador de Tareas}
+
+El archivo \texttt{controllers/taskController.js} implementa las operaciones CRUD para tareas:
+
+
+
+\section{Middlewares}
+
+\subsection{Middleware de Autenticación}
+
+El archivo \texttt{middlewares/authMiddleware.js} verifica tokens JWT:
+
+
+
+\section{Rutas}
+
+\subsection{Rutas de Autenticación}
+
+El archivo \texttt{routes/authRoutes.js} define los endpoints de autenticación:
+
+\begin{lstlisting}
+const express = require('express');
+const router = express.Router();
+const authController = require('../controllers/authController');
+
+router.post('/register', authController.register);
+router.post('/login', authController.login);
+
+module.exports = router;
+\end{lstlisting}
+
+\subsection{Rutas de Tareas}
+
+El archivo \texttt{routes/taskRoutes.js} define los endpoints protegidos para tareas:
+
+\begin{lstlisting}
+const express = require('express');
+const router = express.Router();
+const taskController = require('../controllers/taskController');
+const authMiddleware = require('../middlewares/authMiddleware');
+
+router.get('/', authMiddleware, taskController.getAllTasks);
+router.post('/', authMiddleware, taskController.createTask);
+router.put('/:id', authMiddleware, taskController.updateTask);
+router.delete('/:id', authMiddleware, taskController.deleteTask);
+
+module.exports = router;
+\end{lstlisting}
+
+\section{API Endpoints}
+
+\subsection{Endpoints de Autenticación}
+
+\begin{longtable}{|l|l|l|p{6cm}|}
+\hline
+\textbf{Método} & \textbf{Endpoint} & \textbf{Descripción} & \textbf{Parámetros} \\
+\hline
+POST & \texttt{/api/auth/register} & Registrar nuevo usuario & \texttt{\{username, email, password\}} \\
+\hline
+POST & \texttt{/api/auth/login} & Iniciar sesión & \texttt{\{email, password\}} \\
+\hline
+\end{longtable}
+
+\subsection{Endpoints de Tareas (Protegidos)}
+
+\begin{longtable}{|l|l|l|p{6cm}|}
+\hline
+\textbf{Método} & \textbf{Endpoint} & \textbf{Descripción} & \textbf{Parámetros} \\
+\hline
+GET & \texttt{/api/tasks} & Obtener todas las tareas del usuario & Header: \texttt{Authorization: Bearer <token>} \\
+\hline
+POST & \texttt{/api/tasks} & Crear nueva tarea & \texttt{\{title, description\}} + Header: \texttt{Authorization} \\
+\hline
+PUT & \texttt{/api/tasks/:id} & Actualizar tarea existente & \texttt{\{title, description, completed\}} + Header: \texttt{Authorization} \\
+\hline
+DELETE & \texttt{/api/tasks/:id} & Eliminar tarea & Header: \texttt{Authorization} \\
+\hline
+\end{longtable}
+
+\subsection{Endpoints de Sistema}
+
+\begin{longtable}{|l|l|l|p{6cm}|}
+\hline
+\textbf{Método} & \textbf{Endpoint} & \textbf{Descripción} & \textbf{Respuesta} \\
+\hline
+GET & \texttt{/api/health} & Verificar estado del servidor & \texttt{\{status: "OK", message: "Server is running"\}} \\
+\hline
+\end{longtable}
+
+\section{Frontend}
+
+\subsection{Interfaz de Usuario}
+
+El proyecto incluye un frontend básico en \texttt{public/index.html} que permite:
+
+\begin{itemize}
+    \item Registro e inicio de sesión de usuarios
+    \item Creación, edición y eliminación de tareas
+    \item Visualización de tareas en tiempo real
+    \item Interfaz responsive y moderna
+\end{itemize}
+
+\subsection{Estilos CSS}
+
+Los estilos están definidos en \texttt{public\_css/style.css} con un diseño moderno y responsive.
+
+\subsection{JavaScript del Cliente}
+
+La lógica del frontend está en \texttt{public\_js/main.js} e incluye:
+
+\begin{itemize}
+    \item Gestión de tokens JWT
+    \item Llamadas a la API REST
+    \item Manipulación del DOM
+    \item Validación de formularios
+\end{itemize}
+
+\section{Base de Datos}
+
+\subsection{Esquema de la Base de Datos}
+
+El sistema utiliza MySQL con las siguientes tablas:
+
+\subsubsection{Tabla users}
+\begin{lstlisting}
+CREATE TABLE users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+\end{lstlisting}
+
+\subsubsection{Tabla tasks}
+\begin{lstlisting}
+CREATE TABLE tasks (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    completed BOOLEAN DEFAULT FALSE,
+    user_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+\end{lstlisting}
+
+\section{Instalación y Configuración}
+
+\subsection{Requisitos Previos}
+
+\begin{enumerate}
+    \item Node.js (versión 14 o superior)
+    \item MySQL (versión 5.7 o superior)
+    \item npm (incluido con Node.js)
+\end{enumerate}
+
+\subsection{Pasos de Instalación}
+
+\begin{enumerate}
+    \item \textbf{Clonar o descargar el proyecto}
+    \item \textbf{Instalar dependencias:}
+    \begin{lstlisting}
+    npm install
+    \end{lstlisting}
+    
+    \item \textbf{Configurar la base de datos:}
+    \begin{lstlisting}
+    CREATE DATABASE todo_app;
+    USE todo_app;
+    \end{lstlisting}
+    
+    \item \textbf{Ejecutar los scripts SQL para crear las tablas}
+    
+    \item \textbf{Configurar variables de entorno} en \texttt{entorn.env}
+    
+    \item \textbf{Ejecutar el servidor:}
+    \begin{lstlisting}
+    npm run dev
+    \end{lstlisting}
+\end{enumerate}
+
+\section{Pruebas y Validación}
+
+\subsection{Pruebas de la API}
+
+Se realizaron pruebas exhaustivas de todos los endpoints:
+
+
+
+\subsection{Errores Solucionados}
+
+Durante el desarrollo se identificaron y corrigieron los siguientes errores:
+
+\begin{enumerate}
+    \item \textbf{Errores de sintaxis:} Eliminación de comentarios \texttt{[cite: ...]} inválidos
+    \item \textbf{Problemas de case-sensitive:} Corrección de imports de archivos
+    \item \textbf{Configuración de variables de entorno:} Especificación correcta de la ruta del archivo
+    \item \textbf{Rutas faltantes:} Implementación de endpoint de health check
+\end{enumerate}
+
+\section{Características de Seguridad}
+
+\subsection{Autenticación JWT}
+
+\begin{itemize}
+    \item Tokens con expiración de 1 hora
+    \item Verificación automática en rutas protegidas
+    \item Manejo seguro de errores de autenticación
+\end{itemize}
+
+\subsection{Encriptación de Contraseñas}
+
+\begin{itemize}
+    \item Uso de bcryptjs con salt rounds de 10
+    \item Almacenamiento seguro de contraseñas en la base de datos
+    \item Comparación segura durante el login
+\end{itemize}
+
+\subsection{Validación de Datos}
+
+\begin{itemize}
+    \item Validación de campos obligatorios
+    \item Sanitización de entradas de usuario
+    \item Manejo de errores de base de datos
+\end{itemize}
+
+\section{Optimizaciones Implementadas}
+
+\subsection{Base de Datos}
+
+\begin{itemize}
+    \item Pool de conexiones para mejor rendimiento
+    \item Índices en campos de búsqueda frecuente
+    \item Consultas optimizadas con prepared statements
+\end{itemize}
+
+\subsection{Código}
+
+\begin{itemize}
+    \item Estructura modular y reutilizable
+    \item Manejo asíncrono de operaciones
+    \item Separación clara de responsabilidades (MVC)
+\end{itemize}
+
+\section{Conclusiones}
+
+Este proyecto demuestra la implementación exitosa de un backend completo utilizando Node.js y Express.js. Se han logrado todos los objetivos planteados en la consigna académica:
+
+
+
+El sistema desarrollado es escalable, mantenible y sigue las mejores prácticas de desarrollo web moderno. La arquitectura MVC implementada permite una fácil extensión de funcionalidades y la separación clara de responsabilidades facilita el mantenimiento del código.
+
+\section{Anexos}
+
+\subsection{Comandos Útiles}
+
+
+\subsection{Recursos Adicionales}
+
+\begin{itemize}
+    \item \href{https://nodejs.org/}{Documentación oficial de Node.js}
+    \item \href{https://expressjs.com/}{Documentación oficial de Express.js}
+    \item \href{https://www.mysql.com/}{Documentación oficial de MySQL}
+    \item \href{https://jwt.io/}{Información sobre JWT}
+\end{itemize}
+
+\end{document} 
